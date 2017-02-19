@@ -4,7 +4,11 @@ Ongoing documentation and todo list for a HyperV lab including Windows, Ubuntu a
 ---
 
 ## ToDo list
-Set up DNS alias for the location of the Chef Client msi
+Set up DNS alias for the location of the Chef Client msi  
 Document build new VM Process here (copy from OneNote)
 * Migrate to PowerShell Script
 * Refine/Document Chef Client install
+
+setup Chef recipe/cookbook to
+* install features roles iis, ad, dns
+* copy script and module files
