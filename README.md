@@ -40,6 +40,7 @@ Question: ----
 
 chef generate cookbook [ServerName]
 chef generate template [ServerName] server-info.txt  
+chef generate file [ServerName] Scripts
 
 Copy File D:\chef\[ServerName]\templates\server-info.txt.erb  
 Copy File D:\chef\[ServerName]recipes\default.rb
@@ -75,6 +76,7 @@ kitchen create  -- not needed, go straight to 'converge'
 kitchen list to test  
 kitchen converge  
 
+## Steps
 Will need to Rename the VM
 
 ## Chef Hyper-V driver
