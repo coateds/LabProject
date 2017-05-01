@@ -23,9 +23,9 @@ Top Priority is Server1
 test_powershell:default.rb
 
   powershell_script 'set_dns' do
-      code <<-EOH
-      Set-InternalDNS '192.168.0.110'
-      EOH
+    code <<-EOH
+    Set-InternalDNS '192.168.0.110'
+    EOH
   end
 
 ## New Items to be added to build Hyper-V VM
