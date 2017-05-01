@@ -8,6 +8,15 @@ Top Priority is Server1
   MyVmCommands
   HtmlMonitor
   StartupTools
+* Create Folders
+  C:\Scripts\CSVs  --  copy and adjust contents
+  C:\Scripts\TempData
+* Copy file c:\scripts\NewStartup.ps1
+  Register as Scheduled-Job
+  Instructions in the file comments
+* Move FSMOs - see c:\scripts\
+  ADScripts.ps1
+
 
 ## New Items to be added to build Hyper-V VM
 To add chef-client:
