@@ -3,6 +3,12 @@ Ongoing documentation and todo list for a HyperV lab including Windows, Ubuntu a
 
 ## Remove Servers 1 through 4 before Eval licenses expire
 
+Top Priority is Server1
+* Copy Modules
+  MyVmCommands
+  HtmlMonitor
+  StartupTools
+
 ## New Items to be added to build Hyper-V VM
 To add chef-client:
 Run at client during installation
