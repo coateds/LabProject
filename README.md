@@ -9,11 +9,11 @@ Top Priority is Server1
   * HtmlMonitor
   * StartupTools
 * Create Folders
-  C:\Scripts\CSVs  --  copy and adjust contents
-  C:\Scripts\TempData
+  * C:\Scripts\CSVs  --  copy and adjust contents
+  * C:\Scripts\TempData
 * Copy file c:\scripts\NewStartup.ps1
-  Register as Scheduled-Job
-  Instructions in the file comments
+  * Register as Scheduled-Job
+  * Instructions in the file comments
 * Move FSMOs - see c:\scripts\ADScripts.ps1
 
 
