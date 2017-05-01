@@ -5,17 +5,16 @@ Ongoing documentation and todo list for a HyperV lab including Windows, Ubuntu a
 
 Top Priority is Server1
 * Copy Modules
-  MyVmCommands
-  HtmlMonitor
-  StartupTools
+  * MyVmCommands
+  * HtmlMonitor
+  * StartupTools
 * Create Folders
   C:\Scripts\CSVs  --  copy and adjust contents
   C:\Scripts\TempData
 * Copy file c:\scripts\NewStartup.ps1
   Register as Scheduled-Job
   Instructions in the file comments
-* Move FSMOs - see c:\scripts\
-  ADScripts.ps1
+* Move FSMOs - see c:\scripts\ADScripts.ps1
 
 
 ## New Items to be added to build Hyper-V VM
