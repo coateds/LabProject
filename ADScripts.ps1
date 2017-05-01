@@ -12,3 +12,4 @@ Function Move-AllFMSO
 
 Move-AllFMSO 'Server10'
 
+Uninstall-ADDSDomainController

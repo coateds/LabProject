@@ -15,6 +15,17 @@ Top Priority is Server1
   * Register as Scheduled-Job
   * Instructions in the file comments
 * Move FSMOs - see c:\scripts\ADScripts.ps1
+* Copy c:\scripts\FixFirewallProfiles
+* Demote Server1
+* Adjust Client DNS with Chef
+  * Default recipe in test_powershell
+
+
+    powershell_script 'set_dns' do
+        code <<-EOH
+        Set-InternalDNS '192.168.0.110'
+        EOH
+    end
 
 
 ## New Items to be added to build Hyper-V VM
