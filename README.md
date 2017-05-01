@@ -19,8 +19,8 @@ Top Priority is Server1
 * Demote Server1
 * Adjust Client DNS with Chef
   * Default recipe in test_powershell
+  * test_powershell:default.rb
 
-test_powershell:default.rb
 Set-InternalDNS is included in Module MyVmCommands.psm1
 
     powershell_script 'set_dns' do
