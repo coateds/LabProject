@@ -1,6 +1,8 @@
 # LabProject
 Ongoing documentation and todo list for a HyperV lab including Windows, Ubuntu and DevOps servers/processes
 
+## Remove Servers 1 through 4 before Eval licenses expire
+
 ## New Items to be added to build Hyper-V VM
 To add chef-client:
 Run at client during installation
