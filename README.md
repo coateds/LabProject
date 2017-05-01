@@ -20,14 +20,6 @@ Top Priority is Server1
 * Adjust Client DNS with Chef
   * Default recipe in test_powershell
 
-
-  powershell_script 'set_dns' do
-    code <<-EOH
-    Set-InternalDNS '192.168.0.110'
-    EOH
-  end
-
-
 ## New Items to be added to build Hyper-V VM
 To add chef-client:
 Run at client during installation
