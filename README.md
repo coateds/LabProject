@@ -21,11 +21,11 @@ Top Priority is Server1
   * Default recipe in test_powershell
 
 
-    powershell_script 'set_dns' do
-        code <<-EOH
-        Set-InternalDNS '192.168.0.110'
-        EOH
-    end
+  powershell_script 'set_dns' do
+    code <<-EOH
+    Set-InternalDNS '192.168.0.110'
+    EOH
+  end
 
 
 ## New Items to be added to build Hyper-V VM
