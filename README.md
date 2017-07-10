@@ -1,7 +1,7 @@
 # LabProject
 Ongoing documentation and todo list for a HyperV lab including Windows, Ubuntu and DevOps servers/processes
 
-## Remove Servers 1 through 4 before Eval licenses expire
+## Remove Servers 1 through 4 before Evaluation licenses expire
 
 Top Priority is Server1
 * Copy Modules
@@ -69,14 +69,14 @@ Templates:
 -- Run Host and VM Scripts Here --
 Networking, VMName, ServerName, AD membership, ChefClient
 
-* chef-client::default (Sets up the Sched task etc)
+* chef-client::default (Sets up the Scheduled task etc)
 * chef-client::delete_validation (deletes org PEM file)
 * learn_chef_iis::default
   Source is Server4:  C:\Users\administrator.COATELAB\cookbooks\learn_chef_iis
-  Installs IIS, coinfigures to start, creates a default page from a template
+  Installs IIS, configures to start, creates a default page from a template
 
 ## Modify learn_chef_iis to include a new .ps1 file
-* once uploded, this should find its way to mutliple clients on sched task
+* once uploaded, this should find its way to multiple clients on scheduled task
 * On Server 4...
 * From C:\Users\administrator.COATELAB\cookbooks, chef generate file learn_chef_iis Scripts
 * Rename File: C:\Users\administrator.COATELAB\cookbooks\learn_chef_iis\files\default\scripts to NewScript.ps1
