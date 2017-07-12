@@ -29,20 +29,24 @@ Install VSCode
 * `choco install visualstudiocode -y`
 
 Install Posh-Git
-`choco install poshgit -y`
+* `choco install poshgit -y`
 
+VSCode PS Extension
+* `Install-Package vscode-powershell`
 
+Other VSCode extensions
+* Git History and Code Spellchecker (via VSCode GUI)
 
-Install Software
-* Chocolatey
-* Latest PowerShell
-* Git
-* Posh-Git
-* VSCode
-  *Extensions and customizations
-* HyperV
-  * Virtual Network
+This did not work
+* `choco install hyperv -source WindowsFeatures`
+
+Install HyperV via GUI
+* Configuration yet to be done
+  * Virtual switches
+  * Connect VMs
   * Connect host to internal network
+
+Still to be installed
 * ChefDK
 * RDCMan
   * `choco install rdcman`
