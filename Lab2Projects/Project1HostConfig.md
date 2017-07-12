@@ -25,7 +25,7 @@ Install Git
 * `choco install git -y -params '/GitAndUnixToolsOnPath'`
 * `RefreshEnv`
 
-Install VSCode
+Install VSCodegit 
 * `choco install visualstudiocode -y`
 
 Install Posh-Git
