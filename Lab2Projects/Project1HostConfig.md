@@ -17,15 +17,15 @@ PS Modules - Get-Module -ListAvailable -name pester  ---  installed
 Look at the ChocolateyGet Module  ---  I still do not know what this gains me
 * `Find-Module ChocolateyGet | Install-Module`
 
-Install Chocolatey  ---  `iex...`
-* `Get-PackageProvider -Name chocolatey -force`  --- This ***May*** eliminate the need for the `iex...` command??
+Install Chocolatey  ---  `iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))`
+* `Get-PackageProvider -Name chocolatey -force`
 * `Set-PackageSource -Name chocolatey -Trusted`
 
 Install Git
 * `choco install git -y -params '/GitAndUnixToolsOnPath'`
 * `RefreshEnv`
 
-Install VSCodegit 
+Install VSCode 
 * `choco install visualstudiocode -y`
 
 Install Posh-Git
@@ -34,11 +34,10 @@ Install Posh-Git
 VSCode PS Extension
 * `Install-Package vscode-powershell`
 
-Other VSCode extensions
+Other VSCode extensions and customizations
 * Git History and Code Spellchecker (via VSCode GUI)
-
-This did not work
-* `choco install hyperv -source WindowsFeatures`
+* Set up gitignore for .vscode directory (global)
+* Set custom keyboard shortcuts Shift+Alt+Up/Down
 
 Install HyperV via GUI
 * Configuration yet to be done
@@ -55,3 +54,6 @@ Still to be installed
     * Specify -ProviderName!!
     * ex: `Install-Package rdcman -ProviderName PowerShellGet`  - did not work
     * ex2: `Install-Package rdcman -ProviderName Chocolatey`   - worked
+
+Install some features this way
+* `choco install [feature] -source WindowsFeatures`
