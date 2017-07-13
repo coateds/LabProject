@@ -40,10 +40,19 @@ Other VSCode extensions and customizations
 * Set custom keyboard shortcuts Shift+Alt+Up/Down
 
 Install HyperV via GUI
+* PS: (`Enable-WindowsOptionalFeature -Online -FeatureName:Microsoft-Hyper-V -All`)
 * Configuration yet to be done
   * Virtual switches
   * Connect VMs
   * Connect host to internal network
+
+VM Switches and Net Adapters
+* Get-NetAdapter
+* Get-VMSwitch
+* New-VMSwitch -Name ExternalSwitch -NetAdapterName "Ethernet 2" -AllowManagementOS $true
+* New-VMSwitch -Name InternalSwitch -SwitchType Internal 
+
+`choco install ChefDK -y`
 
 Still to be installed
 * ChefDK
