@@ -1,6 +1,11 @@
 # Project 1: Host Configuration
 register the Win 10 license account.microsoft.com/devices
 
+Rename the Computer
+* `Rename-Computer -NewName HYPERHOST1 -force`
+
+## Install Software
+
 This Windows 10 computer already has WMF/PowerShell v5.1 installed.
 * `Install-PackageProvider -Name "NuGet" -force`
 * `Set-PSRepository -Name PSGallery -InstallationPolicy Trusted`
@@ -8,9 +13,6 @@ This Windows 10 computer already has WMF/PowerShell v5.1 installed.
 * `Set-ExecutionPolicy RemoteSigned`
 * `Add-WUServiceManager -ServiceID [GUID]`
 * `Get-WUInstall -MicrosoftUpdate -AcceptAll -AutoReboot`
-
-Rename the Computer
-* `Rename-Computer -NewName HYPERHOST1 -force`
 
 PS Modules - Get-Module -ListAvailable -name pester  ---  installed
 
@@ -47,22 +49,26 @@ Install HyperV via GUI
   * Connect host to internal network
 
 VM Switches and Net Adapters
-* Get-NetAdapter
-* Get-VMSwitch
-* New-VMSwitch -Name ExternalSwitch -NetAdapterName "Ethernet 2" -AllowManagementOS $true
-* New-VMSwitch -Name InternalSwitch -SwitchType Internal 
+* `Get-NetAdapter`
+* `Get-VMSwitch`
+* `New-VMSwitch -Name ExternalSwitch -NetAdapterName "Ethernet 2" -AllowManagementOS $true`
+* `New-VMSwitch -Name InternalSwitch -SwitchType Internal `
+
+Set Host VMNet Adapters
+* External to DHCP client... gets 169... address. Come back to this sometime?
+  * When running HyperV on a host, the external virtual NIC "takes over" the wired physical NIC
+  * Ipconfig only shows the External vEthernet
+  * GUI shows both, but the physical NIC is not configured for IPv4.
+* Internal to 192.168.5.100
 
 `choco install ChefDK -y`
-
-Still to be installed
-* ChefDK
-* RDCMan
-  * `choco install rdcman`
-  * `Install-Package rdcman`  results in ambiguity error
-    * Available on Chocolatey and PSGallery
-    * Specify -ProviderName!!
-    * ex: `Install-Package rdcman -ProviderName PowerShellGet`  - did not work
-    * ex2: `Install-Package rdcman -ProviderName Chocolatey`   - worked
+`Install-Package rdcman -ProviderName Chocolatey`
 
 Install some features this way
 * `choco install [feature] -source WindowsFeatures`
+
+## Hyper-V Configuration
+* Start by changing the locations of Hyper-V guest files
+* Hyper-V Settings
+  * Virtual Hard Disk Location:  E:\HyperVResources\Guests
+* Goal is to store all virtual hard disks on the E: drive, specifically:  E:\HyperVResources\Guests
