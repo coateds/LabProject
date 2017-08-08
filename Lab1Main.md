@@ -3,8 +3,42 @@ The computer on which lab one is located is connected with a job that probably h
 
 Ongoing documentation and todo list for a first (temporary) HyperV lab including Windows, Ubuntu and DevOps servers/processes
 
-## Remove Servers 1 through 4 before Evaluation licenses expire
+## Refresh servers before Eval license expires (Aug 2017)
+From the beginning, the purpose of this lab was to create an ability to crank out Server 2012R2 VMs based on an eval licensed iso. This way new servers can be built before the 180 day deadline and can take over roles such as domain controller and DNS server.
 
+```diff
+-The current batch of servers are based on an image that will expire on Aug 27, 2017.
+```
+
+Along the way, I hit on using Chef for much of the automation and this led me to working towards some Chef certifications.
+
+My current procedure uses an odd combination of PowerShell scripts, ChefDK Test-Kitchen and integration with a Chef Server on an Ubuntu Server VM. I am using HyperV as my host mostly becuase I am most familiar with that particular technology. This is with the full knowledge that Chef on HyperV is problematic, however it is my understanding that there is a new partnership between Chef and Microsoft. It may just be that being a Chef expert for Windows may be a hot skill very soon. At this time, I am studying for the Local Chef Development badge, so I will be focusing more on the Test-Kitchen aspect of these processes, but I will work more with the Chef server to keep my skills there fresh.
+
+The Chef, Test-Kitchen process uses a base image and differencing disk strategy for churning out test instances of VMs. As a consequence of using an eval iso for this, it is necessary to prepare a new BaseBox image every 180 days. All diff disk derived VMs from this image will have the save expiration date no matter how long after the image was created.
+
+So my first task will be to create a new basebox image. This brings up an interesting philosophical question as it relates to studying Chef capabilities. There is a lot of (common) work that could go into building the BaseBox image, but the more that is done here, the less interesting work the Test-Kitchen and Chef Server processes could do later. One of the biggest issues is just how much to patch the BaseBox image.
+
+Also, I am going to start using Gen2 VMs
+
+```
+Get-NetFirewallPortFilter | ?{$.LocalPort -eq 5985 } | Get-NetFirewallRule | ?{ $.Direction –eq "Inbound" -and $.Profile -eq "Public" -and $.Action –eq "Allow"} | Set-NetFirewallRule -RemoteAddress "Any"
+winrm quickconfig
+```
+
+Proposed SW install list on BaseBox
+```
+Chocolatey
+PowerShell 5.1
+PSWindowsUpdate
+Patches to Aug 2017
+```
+
+Patching
+```
+2017-08 rollup: KB4034681
+```
+
+## Remove Servers 1 through 4 before Evaluation licenses expire
 Top Priority is Server1
 * Copy Modules
   * MyVmCommands
