@@ -29,6 +29,8 @@ Proposed SW install list on BaseBox
 ```
 Chocolatey
 PowerShell 5.1
+NuGet
+(Trust PSGallary)
 PSWindowsUpdate
 Patches to Aug 2017
 ```
@@ -37,6 +39,51 @@ Patching
 ```
 2017-08 rollup: KB4034681
 ```
+
+Kitchen.yml
+```
+---
+driver:
+  name: hyperv
+  parent_vhd_folder: D:\HyperVResources\VMs\BaseBox2\Virtual Hard Disks
+  parent_vhd_name: BaseBox2.vhdx
+  vm_switch: ExternalSwitch
+  memory_startup_bytes: 2GB
+  vm_generation: 2
+  disable_secureboot: true
+
+provisioner:
+  name: chef_zero
+
+verifier:
+  name: inspec
+
+transport:
+  password: H0rnyBunny
+
+platforms:
+  - name: windows-2012r2
+
+suites:
+  - name: default
+    run_list:
+      - recipe[ServerX2::default]
+    verifier:
+      inspec_tests:
+        - test/smoke/default
+    attributes:
+```
+
+BaseBox2 has some goofy shit going on move on to BaseBox3 Beware snapshotting a BaseBox??
+* Settings
+  * 1 proc, 2048
+  * Location:  D:\HyperVResources\VMs
+  * External NICs
+  * DVD connected to Eval ISO
+  * Gen 2
+  * Disable Secure Boot in order to load from DVD
+
+
 
 ## Remove Servers 1 through 4 before Evaluation licenses expire
 Top Priority is Server1
