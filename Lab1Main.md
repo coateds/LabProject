@@ -25,15 +25,7 @@ Get-NetFirewallPortFilter | ?{$.LocalPort -eq 5985 } | Get-NetFirewallRule | ?{ 
 winrm quickconfig
 ```
 
-Proposed SW install list on BaseBox
-```
-Chocolatey
-PowerShell 5.1
-NuGet
-(Trust PSGallary)
-PSWindowsUpdate
-Patches to Aug 2017
-```
+
 
 Patching
 ```
@@ -73,7 +65,7 @@ suites:
         - test/smoke/default
     attributes:
 ```
-
+## Building the BaseBox VM
 BaseBox2 has some goofy shit going on move on to BaseBox3 Beware snapshotting a BaseBox??
 * Settings
   * 1 proc, 2048
@@ -82,8 +74,124 @@ BaseBox2 has some goofy shit going on move on to BaseBox3 Beware snapshotting a 
   * DVD connected to Eval ISO
   * Gen 2
   * Disable Secure Boot in order to load from DVD
+* Proposed SW install list on BaseBox
+  * Chocolatey
+  * PowerShell 5.1
+  * NuGet
+  * (Trust PSGallary)
+  * PSWindowsUpdate
+  * Patches to Aug 2017
+* Enable PSRemoting
+* Enable RDP Connections
 
+## Using a generator
+The first big difference between this round of rebuilds v the last will be the use of a generator. My convention lately has been to create a Chef directory at the root of the data drive (D: or E:) The following diagram shows an example structure
 
+```
+D:.
+└───generator
+    └───hypervlab_origin
+        ├───files
+        │   └───default
+        │       ├───build_cookbook
+        │       ├───cookbook_readmes
+        │       └───repo
+        │           ├───cookbooks
+        │           │   └───example
+        │           │       ├───attributes
+        │           │       └───recipes
+        │           ├───data_bags
+        │           │   └───example
+        │           ├───environments
+        │           ├───policies
+        │           └───roles
+        ├───recipes
+        └───templates
+            └───default
+                ├───build_cookbook
+                └───repo
+```
+
+### templates/default/kitchen.yml.erb
+The kitchen.yml template file is undoubtedly the place to start.
+
+Section 1 - The driver section is typically unique to the Hypervisor type
+```
+driver:
+  name: hyperv
+  parent_vhd_folder: D:\HyperVResources\VMs\BaseBox3\Virtual Hard Disks
+  parent_vhd_name: BaseBox3.vhdx
+  vm_switch: ExternalSwitch
+  memory_startup_bytes: 2GB
+  vm_generation: 2
+  disable_secureboot: true
+```
+
+Middle Sections
+```
+provisioner:
+  name: chef_zero  # When using Test Kitchen, this line keeps everything local, there is no Chef server
+
+verifier:
+  name: inspec  # use this for now... Integration testing using Inspec
+  -or-
+  name: pester  # use this for PowerShell?? I have done some limited work with this
+
+transport:
+  password: <admin pw in clear text>
+
+platforms:
+  - name: windows-2012r2
+```
+
+Last Section
+```
+suites:
+  - name: default
+    run_list:
+      - recipe[<%= cookbook_name %>::default]   # runs the default cookbook
+    verifier:
+      inspec_tests:
+        - test/smoke/default
+    attributes:
+```
+
+With the kitchen.yml done it is possible to generate the scaffolding for a test kitchen cookbook:
+* chef generate cookbook ServerX4 -g D:\chef\generator\hypervlab_origin   # explicitly calls the generator
+* chef\config.rb file
+  * on scriptbox, one exists at c:\chef... I think this is the on that works and it must be located on the c: drive?
+
+Kitchen Create pitfalls
+* The Kitchen Process on the Host must be able to talk to the VM at the end of the process. This means networking between them must work.
+* If using a Gen 2 BaseBox, the flag in the drivers section must be set to match
+
+### Exercise: Put files in the generator structure that are then copied to generated cookbooks and finally copied to new servers
+
+* Step 1: Add the following lines to:  chef\generator\hypervlab_origin\recipes\cookbook.rb
+```
+# Files
+directory "#{cookbook_dir}/files"
+
+cookbook_file "#{cookbook_dir}/files/script.ps1" do
+  source 'script.ps1'
+  action :create_if_missing
+end
+```
+* Step 2: put a file, script.ps1, in chef\generator\hypervlab_origin\files\default
+* Step 3: create a chefspec unit test
+  * (chef exec rspec)
+  * In chef\ServerX6\spec\unit\recipes\default_spec.rb
+  ```diff
+      it 'creates a file with the default action' do
+        expect(chef_run).to create_file('C:\scripts\script.ps1')
+      end
+  -but really this should be moved to the generator default_spec file
+  chef\generator\hypervlab_origin\templates\default\recipe_spec.rb.erb
+  ```
+* Step 4: write a recipe resource to satisfy the test (default.rb)
+  * `file 'C:\scripts\script.ps1'`
+  * in file D:\chef\generator\hypervlab_origin\templates\default\recipe.rb.erb
+* Result so far: run `chef exec rpsec' on new created cookbook and 2 unit tests passed (1 converge and one file create/copy)
 
 ## Remove Servers 1 through 4 before Evaluation licenses expire
 Top Priority is Server1
