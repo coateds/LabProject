@@ -181,7 +181,7 @@ end
 * Step 3: create a chefspec unit test
   * (chef exec rspec)
   * In chef\ServerX6\spec\unit\recipes\default_spec.rb
-  ```diff
+  ```
       it 'creates a file with the default action' do
         expect(chef_run).to create_file('C:\scripts\script.ps1')
       end
@@ -191,6 +191,16 @@ end
 * Step 4: write a recipe resource to satisfy the test (default.rb)
   * `file 'C:\scripts\script.ps1'`
   * in file D:\chef\generator\hypervlab_origin\templates\default\recipe.rb.erb
+* Step 5: Add inspec tests to the generator template inspec_default_test.rb.erb
+```
+describe directory('C:\scripts') do
+  it { should exist }
+end
+
+describe file('C:\scripts\script.ps1') do
+  it { should exist }
+end
+```
 * Result so far: run `chef exec rpsec' on new created cookbook and 2 unit tests passed (1 converge and one file create/copy)
 
 ## Remove Servers 1 through 4 before Evaluation licenses expire
