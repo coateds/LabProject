@@ -201,7 +201,80 @@ describe file('C:\scripts\script.ps1') do
   it { should exist }
 end
 ```
-* Result so far: run `chef exec rpsec' on new created cookbook and 2 unit tests passed (1 converge and one file create/copy)
+* Run kitchen verify for inspec tests
+
+## Integrating kitchen exec into the build process
+My initial experiments with the `kitchen exec` command were highly successful. It suggests that a single script can be written to fully automate the base installation and common configurations of lab servers. For this iteration of the script, it will be stored on the main HyperV data drive at the root of the Chef directory (D:\Chef or E:\Chef etc) The intent is for this to be the initial working directory of the script.
+```
+# Settings
+# $ServerName = 'ServerX'
+# $IP = '192.168.5.200'
+$NewComputerName = 'ServerX'
+$NewComputerIP = '192.168.XXX.XXX'
+$NewComputerDNS = '192.168.XXX.XXX,192.168.XXX.XXX'
+
+# Use ChefDK tools to setup a cookbook for the new server.
+# Some of the customizations for the servers will be included in the cookbook generator.
+chef generate cookbook $NewComputerName -g D:\chef\generator\hypervlab_origin
+Set-Location $NewComputerName
+kitchen create
+
+# Rename the VM and computer.
+# The first command is run on the HyperV host and the second on the newly created guest using the kitchen exec command
+Rename-VM -Name default-windows-2012r2 -NewName $NewComputerName
+kitchen exec -c "Rename-Computer -NewName $NewComputerName"
+
+# One of my self imposed requirements of the lab is to be able to run experiments among the servers on an internal only network.
+# For instance, I am running my own tiny Windows AD domain and I do not want this to interfere with the corporate domains.
+# During this installation process, the guest will use an externally connected NIC, but an internally connected NIC will be built as well.
+
+# Rename the existing (External) NIC
+# There is only one NIC at this point, naming it now will make it possible to distinguish it programmatically.
+kitchen exec -c "Get-NetAdapter | Rename-NetAdapter -NewName ExternalNIC"
+
+# Shutdown VM
+# 1) So the new name of the Guest can take effect
+# 2) So virtual hardware changes can be made to the VM. At this time add a new NIC
+# The sleep command allows time for the VM to fully shutdown
+#####  Question #####
+# Would 'Get-VM -Name $NewComputerName | Start-VM' instead of the
+# kitchen exec shutdown command eliminate the need for the sleep command?
+# i.e. would the script wait for the shutdown??
+##### /Question #####
+kitchen exec -c "Stop-Computer"
+start-sleep 30
+Add-VMNetworkAdapter -VMName $NewComputerName -SwitchName InternalSwitch
+
+# Start the VM and converge it. This will run the recipe(s) in the cookbook
+Get-VM -Name $NewComputerName | Start-VM
+kitchen converge
+
+# Rename and configure the new Internal NIC.
+kitchen exec -c "Get-NetAdapter | Where-Object Name -ne 'ExternalNIC' | Rename-NetAdapter -NewName InternalNIC"
+kitchen exec -c "Get-NetAdapter | Where-Object Name -eq 'InternalNIC' | New-NetIPAddress -PrefixLength 24 -IPAddress $NewComputerIP"
+kitchen exec -c "Get-NetAdapter | Where-Object Name -eq 'InternalNIC' | Set-DnsClientServerAddress -ServerAddresses ($NewComputerDNS)"
+
+```
+
+Script ToDo list
+* Add C:\Program Files\WindowsPowerShell\Modules\MyVmCommands\MyVmCommands.psm1 to generator
+```diff
+copy file MyVmCommands.psm1 to D:\chef\generator\hypervlab_origin\files\default
+Add commands to D:\chef\generator\hypervlab_origin\recipes
+  cookbook_file "#{cookbook_dir}/files/MyVmCommands.psm1" do
+    source 'MyVmCommands.psm1'
+    action :create_if_missing
+  end
+Add commands to D:\chef\generator\hypervlab_origin\templates\default\recipe.rb.erb
+  directory 'C:\Program Files\WindowsPowerShell\Modules\MyVmCommands'
+  cookbook_file 'C:\Program Files\WindowsPowerShell\Modules\MyVmCommands\MyVmCommands.psm1' do
+    Source 'MyVmCommands.psm1'
+  end
+
+```
+* Adjust Firewall settings
+* Join AD Domain
+
 
 ## Remove Servers 1 through 4 before Evaluation licenses expire
 Top Priority is Server1
