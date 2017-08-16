@@ -207,8 +207,6 @@ end
 My initial experiments with the `kitchen exec` command were highly successful. It suggests that a single script can be written to fully automate the base installation and common configurations of lab servers. For this iteration of the script, it will be stored on the main HyperV data drive at the root of the Chef directory (D:\Chef or E:\Chef etc) The intent is for this to be the initial working directory of the script.
 ```
 # Settings
-# $ServerName = 'ServerX'
-# $IP = '192.168.5.200'
 $NewComputerName = 'ServerX'
 $NewComputerIP = '192.168.XXX.XXX'
 $NewComputerDNS = '192.168.XXX.XXX,192.168.XXX.XXX'
@@ -235,14 +233,9 @@ kitchen exec -c "Get-NetAdapter | Rename-NetAdapter -NewName ExternalNIC"
 # Shutdown VM
 # 1) So the new name of the Guest can take effect
 # 2) So virtual hardware changes can be made to the VM. At this time add a new NIC
-# The sleep command allows time for the VM to fully shutdown
-#####  Question #####
-# Would 'Get-VM -Name $NewComputerName | Start-VM' instead of the
-# kitchen exec shutdown command eliminate the need for the sleep command?
-# i.e. would the script wait for the shutdown??
-##### /Question #####
-kitchen exec -c "Stop-Computer"
-start-sleep 30
+# The Get-VM | Stop command seems to block the script until the VM is shutdown
+# which is exactly the desired behavior
+Get-VM -Name $NewComputerName | Stop-VM
 Add-VMNetworkAdapter -VMName $NewComputerName -SwitchName InternalSwitch
 
 # Start the VM and converge it. This will run the recipe(s) in the cookbook
@@ -252,8 +245,37 @@ kitchen converge
 # Rename and configure the new Internal NIC.
 kitchen exec -c "Get-NetAdapter | Where-Object Name -ne 'ExternalNIC' | Rename-NetAdapter -NewName InternalNIC"
 kitchen exec -c "Get-NetAdapter | Where-Object Name -eq 'InternalNIC' | New-NetIPAddress -PrefixLength 24 -IPAddress $NewComputerIP"
-kitchen exec -c "Get-NetAdapter | Where-Object Name -eq 'InternalNIC' | Set-DnsClientServerAddress -ServerAddresses ($NewComputerDNS)"
 
+#########################
+## Hard Coded for Now! ##
+## Needs to be revisited#
+#########################
+kitchen exec -c "Get-NetAdapter | Where-Object Name -eq 'InternalNIC' | Set-DnsClientServerAddress -ServerAddresses ('192.168.0.110')"
+
+# Enable Remote Desktop
+kitchen exec -c "Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server'-name 'fDenyTSConnections' -Value 0"
+
+# Allow incoming RDP on firewall
+kitchen exec -c "Enable-NetFirewallRule -DisplayGroup 'Remote Desktop'"
+
+# Enable secure RDP authentication
+kitchen exec -c "Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp' -name 'UserAuthentication' -Value 1"
+
+# Call a script to join the domain
+kitchen exec -c "Invoke-Expression c:\scripts\script.ps1"
+
+```
+
+c:\scripts\script.ps1
+```
+$PlainPassword = "H0rnyBunny"
+$SecurePassword = $PlainPassword | ConvertTo-SecureString -AsPlainText -Force
+$UserName = "CoateLab\Administrator"
+$c = New-Object System.Management.Automation.PSCredential -ArgumentList $UserName, $SecurePassword
+
+# Join Domain
+Add-Computer -DomainName CoateLab -Credential $c
+Restart-Computer
 ```
 
 Script ToDo list
