@@ -245,12 +245,7 @@ kitchen converge
 # Rename and configure the new Internal NIC.
 kitchen exec -c "Get-NetAdapter | Where-Object Name -ne 'ExternalNIC' | Rename-NetAdapter -NewName InternalNIC"
 kitchen exec -c "Get-NetAdapter | Where-Object Name -eq 'InternalNIC' | New-NetIPAddress -PrefixLength 24 -IPAddress $NewComputerIP"
-
-#########################
-## Hard Coded for Now! ##
-## Needs to be revisited#
-#########################
-kitchen exec -c "Get-NetAdapter | Where-Object Name -eq 'InternalNIC' | Set-DnsClientServerAddress -ServerAddresses ('192.168.0.110')"
+kitchen exec -c "Get-NetAdapter | Where-Object Name -eq 'InternalNIC' | Set-DnsClientServerAddress -ServerAddresses ('$NewComputerDNS')"
 
 # Enable Remote Desktop
 kitchen exec -c "Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server'-name 'fDenyTSConnections' -Value 0"
