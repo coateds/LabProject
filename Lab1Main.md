@@ -27,11 +27,6 @@ winrm quickconfig
 
 
 
-Patching
-```
-2017-08 rollup: KB4034681
-```
-
 Kitchen.yml
 ```
 ---
@@ -273,25 +268,34 @@ Add-Computer -DomainName CoateLab -Credential $c
 Restart-Computer
 ```
 
-Script ToDo list
-* Add C:\Program Files\WindowsPowerShell\Modules\MyVmCommands\MyVmCommands.psm1 to generator
 ```diff
-copy file MyVmCommands.psm1 to D:\chef\generator\hypervlab_origin\files\default
-Add commands to D:\chef\generator\hypervlab_origin\recipes
-  cookbook_file "#{cookbook_dir}/files/MyVmCommands.psm1" do
-    source 'MyVmCommands.psm1'
-    action :create_if_missing
-  end
-Add commands to D:\chef\generator\hypervlab_origin\templates\default\recipe.rb.erb
-  directory 'C:\Program Files\WindowsPowerShell\Modules\MyVmCommands'
-  cookbook_file 'C:\Program Files\WindowsPowerShell\Modules\MyVmCommands\MyVmCommands.psm1' do
-    Source 'MyVmCommands.psm1'
-  end
-
+-The script to join the domain works, but there is not always an ability to find the domain controller in Lab1
 ```
-* Adjust Firewall settings
-* Join AD Domain
 
+# Patching
+c:\scripts\InstallUpdates.ps1
+```
+Set-MyVmNetwork -Toggle ExternalOnly
+
+If ((Get-WUInstall -ListOnly).Count -ne 0)
+    {
+    # There are updates available
+
+    #Install, but do not reboot
+    # Get-WUInstall –MicrosoftUpdate –AcceptAll –AutoReboot
+    Get-WUInstall –MicrosoftUpdate –AcceptAll -IgnoreReboot
+
+    $null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown')
+
+    Set-MyVmNetwork -Toggle InternalOnly
+    Restart-Computer
+    }
+Else
+    {
+    "No Updates Available"
+    Set-MyVmNetwork -Toggle InternalOnly
+    }
+```
 
 ## Remove Servers 1 through 4 before Evaluation licenses expire
 Top Priority is Server1
