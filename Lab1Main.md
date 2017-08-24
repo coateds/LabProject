@@ -12,18 +12,51 @@ From the beginning, the purpose of this lab was to create an ability to crank ou
 
 Along the way, I hit on using Chef for much of the automation and this led me to working towards some Chef certifications.
 
-My current procedure uses an odd combination of PowerShell scripts, ChefDK Test-Kitchen and integration with a Chef Server on an Ubuntu Server VM. I am using HyperV as my host mostly becuase I am most familiar with that particular technology. This is with the full knowledge that Chef on HyperV is problematic, however it is my understanding that there is a new partnership between Chef and Microsoft. It may just be that being a Chef expert for Windows may be a hot skill very soon. At this time, I am studying for the Local Chef Development badge, so I will be focusing more on the Test-Kitchen aspect of these processes, but I will work more with the Chef server to keep my skills there fresh.
+My current procedure uses an odd combination of PowerShell scripts, ChefDK Test-Kitchen and integration with a Chef Server on an Ubuntu Server VM. I am using HyperV as my host mostly because I am most familiar with that particular technology. This is with the full knowledge that Chef on HyperV is problematic, however it is my understanding that there is a new partnership between Chef and Microsoft. It may just be that being a Chef expert for Windows may be a hot skill very soon. At this time, I am studying for the Local Chef Development badge, so I will be focusing more on the Test-Kitchen aspect of these processes, but I will work more with the Chef server to keep my skills there fresh.
 
 The Chef, Test-Kitchen process uses a base image and differencing disk strategy for churning out test instances of VMs. As a consequence of using an eval iso for this, it is necessary to prepare a new BaseBox image every 180 days. All diff disk derived VMs from this image will have the save expiration date no matter how long after the image was created.
 
-So my first task will be to create a new basebox image. This brings up an interesting philosophical question as it relates to studying Chef capabilities. There is a lot of (common) work that could go into building the BaseBox image, but the more that is done here, the less interesting work the Test-Kitchen and Chef Server processes could do later. One of the biggest issues is just how much to patch the BaseBox image.
+So my first task will be to create a new BaseBox image. This brings up an interesting philosophical question as it relates to studying Chef capabilities. There is a lot of (common) work that could go into building the BaseBox image, but the more that is done here, the less interesting work the Test-Kitchen and Chef Server processes could do later. One of the biggest issues is just how much to patch the BaseBox image.
 
 Also, I am going to start using Gen2 VMs
 
-```
-Get-NetFirewallPortFilter | ?{$.LocalPort -eq 5985 } | Get-NetFirewallRule | ?{ $.Direction –eq "Inbound" -and $.Profile -eq "Public" -and $.Action –eq "Allow"} | Set-NetFirewallRule -RemoteAddress "Any"
-winrm quickconfig
-```
+### BaseBox Lessons
+* The Test Kitchen instances all have the same SID
+  * This does not seem to be a problem for most/all member servers
+  * Domain Controllers should have a different SID than the member servers trying to join the domain
+* Solution: Two BaseBox images
+  * SysPrepped: D:\HyperVResources\VHDs\SysPreppedForNewSIDs
+    * Create a new VM with bogus.vhdx for a disk
+    * put a *copy* of the SysPrepped vhdx in the same location as bogus.vhdx and name it [ServerName].vhdx
+    * edit VM to point at this relocated/renamed file (ACLs are adjusted at this time to grant access)
+    * The new VM will have a reset 180 day clock
+  * Not SysPrepped: D:\HyperVResources\VHDs\BaseBox3ForKitchen
+    * ChefDK/Kitchen will use this
+    * Every VM will have the same SID
+    * Every VM will have the same expiration date
+    * A new one of these will need to be generated from the sysprepped image every 180 days or less
+    * Helpful to update patches when generating a new image
+* Do not snapshot a BaseBox image
+
+## Building the BaseBox VM
+* Settings
+  * 1 proc, 2048
+  * Location:  D:\HyperVResources\VMs
+  * External NIC
+  * DVD connected to Eval ISO
+  * Gen 2
+  * Disable Secure Boot in order to load from DVD
+* Proposed SW install list on BaseBox
+  * Chocolatey
+  * PowerShell 5.1
+  * NuGet
+  * (Trust PSGallary)
+  * PSWindowsUpdate
+  * Patches to Aug 2017
+* Enable PSRemoting
+* Enable RDP Connections
+
+
 
 
 
@@ -32,8 +65,8 @@ Kitchen.yml
 ---
 driver:
   name: hyperv
-  parent_vhd_folder: D:\HyperVResources\VMs\BaseBox2\Virtual Hard Disks
-  parent_vhd_name: BaseBox2.vhdx
+  parent_vhd_folder: D:\HyperVResources\VHDs\BaseBox3ForKitchen
+  parent_vhd_name: BaseBox3ForKitchen.vhdx
   vm_switch: ExternalSwitch
   memory_startup_bytes: 2GB
   vm_generation: 2
@@ -60,24 +93,7 @@ suites:
         - test/smoke/default
     attributes:
 ```
-## Building the BaseBox VM
-BaseBox2 has some goofy shit going on move on to BaseBox3 Beware snapshotting a BaseBox??
-* Settings
-  * 1 proc, 2048
-  * Location:  D:\HyperVResources\VMs
-  * External NICs
-  * DVD connected to Eval ISO
-  * Gen 2
-  * Disable Secure Boot in order to load from DVD
-* Proposed SW install list on BaseBox
-  * Chocolatey
-  * PowerShell 5.1
-  * NuGet
-  * (Trust PSGallary)
-  * PSWindowsUpdate
-  * Patches to Aug 2017
-* Enable PSRemoting
-* Enable RDP Connections
+
 
 ## Using a generator
 The first big difference between this round of rebuilds v the last will be the use of a generator. My convention lately has been to create a Chef directory at the root of the data drive (D: or E:) The following diagram shows an example structure
@@ -484,3 +500,9 @@ Document build new VM Process here (copy from OneNote)
 setup Chef recipe/cookbook to
 * install features roles iis, ad, dns
 * copy script and module files
+
+
+```
+Get-NetFirewallPortFilter | ?{$.LocalPort -eq 5985 } | Get-NetFirewallRule | ?{ $.Direction –eq "Inbound" -and $.Profile -eq "Public" -and $.Action –eq "Allow"} | Set-NetFirewallRule -RemoteAddress "Any"
+winrm quickconfig
+```

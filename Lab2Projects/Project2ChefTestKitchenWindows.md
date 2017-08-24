@@ -3,7 +3,7 @@ This will be building from work found <a href="https://github.com/coateds/DevOps
 It is a continuation of Project 1: Host Configuration
 The box is 'HyperHost1', a Windows 10 installation with the creator (Jul '17) newly installed
 
-## An earlier lesson:  
+## An earlier lesson:
 A VM guest, when spun up by kitchen create, must be able to talk (network working) to the HyperV host running ChefDK or the process will time out and Kitchen will not be entirely aware of the guest. Make sure to call out a Virtual Switch that actually exists. (Configure default network switch "ExternalSwitch". Verify this switch is connected to the correct NIC. Can the guest connect to the network when done?)
 
 ## SW installed
@@ -24,6 +24,7 @@ Of note: ChefDK 2.0.26 includes the Test Kitchen Hyper-V driver. This will be my
 ## BaseBox Image
 * An initial image was installed to test that HyperV was running. It has been updated with latest security updates. Attempt to export this to "BaseBox". I exported the VM to E:\HyperVResources\Guests\BaseBox and renamed the .vhdx file therein.
 
+
 ## Set up test-kitchen
 * Create folder e:\chef and e:\chef\generator
 * From within e:\chef\generator, chef generate generator hyperv_origin
@@ -39,10 +40,12 @@ chefdk.generator_cookbook "C:/chef/generator/hyperv_origin"
 ---
 driver:
   name: hyperv
-  parent_vhd_folder: E:\HyperVResources\Guests\BaseBox
-  parent_vhd_name: BaseBox.vhdx
+  parent_vhd_folder: D:\HyperVResources\VHDs\BaseBox3ForKitchen
+  parent_vhd_name: BaseBox3ForKitchen.vhdx
   vm_switch: ExternalSwitch
   memory_startup_bytes: 2GB
+  vm_generation: 2
+  disable_secureboot: true
 
 provisioner:
   name: chef_zero
@@ -51,7 +54,7 @@ provisioner:
   password: H0rnyBunny
 
 verifier:
-  name: pester
+  name: inspec
 
 platforms:
   - name: windows-2012r2
@@ -65,7 +68,16 @@ suites:
         - test/smoke/default
     attributes:
 ```
-* `chef generate cookbook ServerX1 -g e:\chef\generator\hyperv_origin`
+* A correctly formed kitchen.yml file is the minimum requirement for a running `kitchen list` and `kitchen create`
+* To Create a cookbook: `chef generate cookbook [ServerName] -g e:\chef\generator\hyperv_origin`
+
+## A scripted solution
+One of the arbitrary goals of this lab is the ability to isolate
+
+
+
+# Detritus
+
 * It does not like pester yet  --- STILL!!
   * `choco install pester`
   * `gem install pester`
