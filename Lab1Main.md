@@ -3,12 +3,49 @@ The computer on which lab one is located is connected with a job that probably h
 
 Ongoing documentation and todo list for a first (temporary) HyperV lab including Windows, Ubuntu and DevOps servers/processes
 
+## Going to a NAT environment
+Up to this point, I have been building VMs with the ability to switch them between an internal and external vSwitch. This has allowed me to minimize the number of corporate IP addresses used and build my own AD Domain. However, this has complicated the build process and does not allow for recipes that might need access to the Internet and the AD Domain at the same time. Working with this limitation has been interesting and has taught me a lot. However, it was time to build some kind of Router/NAT/ICS solution that allows me to treat the Internal network as highly isolated and yet still be able to install software from the Internet as required.
+
+In the corporate environment, ICS (Internet Connection Sharing) was not available to me due to GPO restrictions. Given this, my chosen solution was to build an Ubuntu server instance dedicated to running IP Forwarding in a NAT configuration. From a client's perspective, this simply means using the NAT server's internal IP address as the Gateway. In future lab builds, giving the .1 address of the internal subnet to this would make for a very 'Normal' looking configuration.
+
+To further simplify the test server build process, I added a DHCP server to the AD Domain Controller/DNS server.
+
+For now, I am going to continue to use the same BaseBox images I build for the Aug 2017 refresh.
+
+### A new Generator and Install Script
+The first, big change from process below will be to create a new generator.
+* From within d:\chef\generator, `chef generate generator hypervlab_origin1`
+* Change only one line in kitchen.yml.erb: `vm_switch: InternalSwitch`
+
+The second change will be a new install script: New-KitchenServer1.ps1
+```
+$NewComputerName = 'ServerX5'
+
+# Use ChefDK tools to setup a cookbook for the new server.
+# Some of the customizations for the servers will be included in the cookbook generator.
+chef generate cookbook $NewComputerName -g D:\chef\generator\hypervlab_origin1
+Set-Location $NewComputerName
+kitchen create
+
+# Rename the VM and computer.
+# The first command is run on the HyperV host and the second on the newly created guest using the kitchen exec command
+Rename-VM -Name default-windows-2012r2 -NewName $NewComputerName
+kitchen exec -c "Rename-Computer -NewName $NewComputerName"
+
+# Restart VM so the new name of the Guest can take effect
+Get-VM -Name $NewComputerName | Restart-VM
+
+######  Nothing to Converge at this time  ######
+# kitchen converge
+
+# Enable Remote Desktop, Allow through FW and enable Secure Auth
+kitchen exec -c "Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server'-name 'fDenyTSConnections' -Value 0"
+kitchen exec -c "Enable-NetFirewallRule -DisplayGroup 'Remote Desktop'"
+kitchen exec -c "Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp' -name 'UserAuthentication' -Value 1"
+```
+
 ## Refresh servers before Eval license expires (Aug 2017)
 From the beginning, the purpose of this lab was to create an ability to crank out Server 2012R2 VMs based on an eval licensed iso. This way new servers can be built before the 180 day deadline and can take over roles such as domain controller and DNS server.
-
-```diff
--The current batch of servers are based on an image that will expire on Aug 27, 2017.
-```
 
 Along the way, I hit on using Chef for much of the automation and this led me to working towards some Chef certifications.
 
